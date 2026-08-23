@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#101030">
+<title>Daily Routine Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#101030;--surface:#1a1a42;--card:#1e1e4a;--border:#2e2e6a;--gold:#c5a96a;--gold-m:#9a8558;--gold-d:#706040;--cream:#e8dcc8;--txt-mid:#a8997e;--txt-lo:#6e6252;--accent-l:#4e4eae;--today-bg:#2a2a72;--green:#6aaa6a;--rose:#b07090;--sky:#6a90c0;--lav:#8a6ab0;--red:#c05050}
+html,body{background:var(--bg);color:var(--cream);font-family:Georgia,serif;min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+::-webkit-scrollbar{display:none}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:70px}
+.sf{font-family:system-ui,sans-serif}
+.hdr{padding:22px 20px 14px;background:linear-gradient(180deg,#16163e,#101030);border-bottom:1px solid var(--border)}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-start}
+.hdr h1{font-size:28px;font-weight:400;color:var(--gold);font-style:italic;letter-spacing:1px}
+.hdr-sub{font-size:10px;color:var(--txt-mid);margin-top:4px;font-family:system-ui,sans-serif;letter-spacing:2px;text-transform:uppercase}
+.hdr-date{font-size:13px;color:var(--cream);font-family:system-ui,sans-serif;font-weight:600;margin-top:8px}
+.streak-box{display:flex;flex-direction:column;align-items:center;border:1px solid var(--border);border-radius:14px;padding:8px 16px;background:var(--surface)}
+.streak-n{font-size:20px;font-weight:700;color:var(--gold);font-family:system-ui,sans-serif}
+.streak-l{font-size:8px;color:var(--txt-mid);font-family:system-ui,sans-serif;text-transform:uppercase;letter-spacing:1.5px}
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:var(--surface);border-top:1px solid var(--border);z-index:100}
+.bnav button{flex:1;padding:10px 0 8px;border:none;background:transparent;color:var(--txt-mid);font-family:system-ui,sans-serif;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .2s}
+.bnav button.act{color:var(--gold)}
+.bnav-icon{font-size:17px}
+.panel{margin:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+.panel-t{font-size:13px;font-weight:600;font-family:system-ui,sans-serif;margin-bottom:10px}
+.today-summary{display:flex;gap:8px;padding:14px 14px 6px}
+.sum-card{flex:1;min-width:70px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center}
+.sum-num{font-size:20px;font-weight:700;font-family:system-ui,sans-serif}
+.sum-lbl{font-size:8px;color:var(--txt-mid);font-family:system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.hab-section{padding:8px 14px}
+.hab-section-t{font-size:11px;font-weight:700;color:var(--txt-mid);font-family:system-ui,sans-serif;text-transform:uppercase;letter-spacing:2px;padding:10px 0 6px;display:flex;align-items:center;gap:8px}
+.hab-item{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:6px;text-align:left;transition:all .25s}
+.hab-item.done{opacity:.5;background:rgba(30,30,74,.5)}
+.hab-chk{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid var(--gold-d);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.hab-item.done .hab-chk{border-color:var(--gold);background:var(--gold)}
+.hab-cm{color:var(--bg);font-size:13px;font-weight:700;display:none}
+.hab-item.done .hab-cm{display:block}
+.hab-info{flex:1}
+.hab-name{font-size:13px;color:var(--cream);font-family:system-ui,sans-serif;font-weight:500}
+.hab-item.done .hab-name{text-decoration:line-through;color:var(--txt-lo)}
+.hab-cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sc-card{margin:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s}
+.sc-card:active{background:var(--card)}
+.sc-card-row{display:flex;justify-content:space-between;align-items:center}
+.sc-card-left{display:flex;align-items:center;gap:12px}
+.sc-prog-ring{position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.sc-prog-txt{position:absolute;font-size:11px;font-weight:700;color:var(--gold);font-family:system-ui,sans-serif}
+.sc-card-arrow{color:var(--gold);font-size:16px}
+.week-strip{display:flex;gap:5px;padding:14px 10px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.day-pill{flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:var(--txt-mid);font-family:system-ui,sans-serif;font-size:11px;font-weight:600;transition:all .2s}
+.day-pill.active{background:var(--today-bg);border-color:var(--accent-l);color:#fff}
+.day-pill.today:not(.active){border-color:var(--gold-d);color:var(--gold)}
+.micro-bar{width:100%;height:3px;border-radius:2px;background:var(--border);overflow:hidden}
+.active .micro-bar{background:rgba(255,255,255,.15)}
+.micro-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .3s}
+.active .micro-fill{background:#fff}
+.step{display:flex;align-items:flex-start;gap:12px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:7px;text-align:left;transition:all .25s}
+.step.done{opacity:.5;background:rgba(30,30,74,.5)}
+.step-chk{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid var(--gold-d);background:transparent;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s}
+.step.done .step-chk{border-color:var(--gold);background:var(--gold)}
+.step-cm{color:var(--bg);font-size:13px;font-weight:700;display:none}
+.step.done .step-cm{display:block}
+.step-content{display:flex;flex-direction:column;gap:4px;flex:1}
+.step-cat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;align-self:flex-start;font-family:system-ui,sans-serif;text-transform:uppercase;letter-spacing:.8px}
+.step-label{font-size:13px;color:var(--cream);line-height:1.45;font-family:system-ui,sans-serif;font-weight:400}
+.step.done .step-label{color:var(--txt-lo);text-decoration:line-through}
+.cat-cleanse{border-left:4px solid #6aaac5!important}.cat-cleanse .step-cat{background:#182838;color:#6aaac5}
+.cat-device{border-left:4px solid #a86ab0!important}.cat-device .step-cat{background:#281838;color:#a86ab0}
+.cat-treat{border-left:4px solid #c5a050!important}.cat-treat .step-cat{background:#2a2218;color:#c5a050}
+.cat-protect{border-left:4px solid #6aaa6a!important}.cat-protect .step-cat{background:#1a2818;color:#6aaa6a}
+.cat-moisturise{border-left:4px solid #c06a90!important}.cat-moisturise .step-cat{background:#28182a;color:#c06a90}
+.spot-step{border-left:4px solid var(--red)!important}.spot-step .step-cat{background:#2a1818;color:var(--red)}
+.mist{font-size:12px;color:var(--sky);background:rgba(106,144,192,.08);border:1px solid rgba(106,144,192,.2);padding:11px 16px;border-radius:10px;margin:10px 0;font-family:system-ui,sans-serif;text-align:center;font-style:italic}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;padding:2px 20px 16px}
+.chip{font-size:10px;color:var(--txt-mid);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-family:system-ui,sans-serif;font-weight:500}
+.spot-toggle{width:100%;display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:10px;border:1.5px dashed var(--border);background:transparent;text-align:left;font-family:system-ui,sans-serif;font-size:13px;font-weight:500;color:var(--cream);transition:all .2s;margin-top:12px}
+.spot-toggle.active{border-color:var(--red);background:rgba(192,80,80,.08)}
+.qure-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:system-ui,sans-serif;background:var(--card);color:var(--txt-lo);border:1px solid var(--border);transition:all .3s}
+.qure-dot.filled{background:var(--lav);color:#fff;border-color:var(--lav)}
+.reset-btn{width:100%;margin-top:22px;padding:11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--txt-lo);font-family:system-ui,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1.5px}
+.lib-cat{margin:0 14px}
+.lib-cat-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px;cursor:pointer}
+.lib-cat-name{font-size:14px;font-weight:600;color:var(--cream);font-family:system-ui,sans-serif;display:flex;align-items:center;gap:8px}
+.lib-cat-arrow{color:var(--gold);font-size:14px;font-family:system-ui,sans-serif;transition:transform .2s}
+.lib-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px}
+.lib-item-name{font-size:13px;color:var(--cream);font-family:system-ui,sans-serif;font-weight:500}
+.lib-item-desc{font-size:11px;color:var(--txt-mid);font-family:system-ui,sans-serif;margin-top:2px}
+.lib-toggle{width:44px;height:26px;border-radius:13px;border:none;padding:2px;cursor:pointer;transition:background .2s}
+.lib-toggle.on{background:var(--green)}.lib-toggle.off{background:var(--border)}
+.lib-toggle-dot{width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s;display:block}
+.lib-toggle.on .lib-toggle-dot{transform:translateX(18px)}
+/* Stats */
+.stat-bar-row{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 14px;margin-top:10px}
+.stat-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.stat-bar{width:100%;border-radius:4px 4px 0 0;transition:height .3s;min-height:2px}
+.stat-bar-lbl{font-size:10px;font-family:system-ui,sans-serif;font-weight:600;color:var(--txt-mid)}
+.stat-bar-val{font-size:10px;font-family:system-ui,sans-serif;font-weight:700;color:var(--cream)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px;margin-top:8px}
+.cal-hdr{font-size:10px;font-family:system-ui,sans-serif;font-weight:700;color:var(--txt-mid);text-align:center;padding:4px 0}
+.cal-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:system-ui,sans-serif;font-weight:600;transition:all .2s}
+.cal-empty{background:transparent}
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.modal{width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 40px}
+.modal-title{font-size:18px;font-weight:400;color:var(--gold);margin-bottom:16px}
+.modal-field{margin-bottom:14px}
+.modal-label{font-size:11px;font-weight:700;color:var(--txt-mid);font-family:system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.modal-input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--cream);font-family:system-ui,sans-serif;font-size:14px}
+.modal-input:focus{outline:none;border-color:var(--gold)}
+.modal-select{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--cream);font-family:system-ui,sans-serif;font-size:14px;-webkit-appearance:none}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns button{flex:1;padding:12px;border-radius:8px;font-family:system-ui,sans-serif;font-size:13px;font-weight:600;border:none}
+.btn-primary{background:var(--gold);color:var(--bg)}
+.btn-secondary{background:var(--card);color:var(--cream);border:1px solid var(--border)!important}
+.btn-danger{background:var(--red);color:#fff}
+.date-strip{display:flex;gap:4px;padding:12px 14px 8px;overflow-x:auto}
+.date-pill{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:var(--txt-mid);font-family:system-ui,sans-serif;font-size:11px;font-weight:600;transition:all .2s;min-width:48px}
+.date-pill.active{background:var(--today-bg);border-color:var(--accent-l);color:#fff}
+.date-pill.is-today:not(.active){border-color:var(--gold-d);color:var(--gold)}
+.date-pill-day{font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+.date-pill-num{font-size:16px;font-weight:700}
+.past-banner{margin:0 14px 8px;padding:10px 14px;background:rgba(197,169,106,.08);border:1px solid rgba(197,169,106,.2);border-radius:10px;font-family:system-ui,sans-serif;font-size:12px;color:var(--gold);display:flex;justify-content:space-between;align-items:center}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1.1)}}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+const HABIT_LIB=[
+{cat:"Dental Hygiene",icon:"\u{1F9B7}",color:"#6aaac5",habits:[
+{id:"h-brush-am",name:"Brush teeth",time:"morning",desc:"2 min, morning"},{id:"h-brush-pm",name:"Brush teeth",time:"evening",desc:"2 min, before bed"},{id:"h-floss",name:"Floss",time:"evening",desc:"Before brushing"},{id:"h-mouthwash",name:"Mouthwash",time:"evening",desc:"30 sec after brushing"},{id:"h-tongue",name:"Tongue scraping",time:"morning",desc:"Before brushing"}]},
+{cat:"Sleep Routine",icon:"\u{1F319}",color:"#8a6ab0",habits:[
+{id:"h-bedtime",name:"In bed by target bedtime",time:"evening",desc:"Consistent schedule"},{id:"h-noscreens",name:"No screens 30 min before bed",time:"evening",desc:"Blue light disrupts melatonin"},{id:"h-waketime",name:"Wake at consistent time",time:"morning",desc:"Even on weekends"},{id:"h-clothes",name:"Prepare tomorrow's outfit",time:"evening",desc:"Reduces morning decisions"},{id:"h-wind",name:"Evening wind-down",time:"evening",desc:"Reading, stretching, or breathing"}]},
+{cat:"Hydration",icon:"\u{1F4A7}",color:"#6a90c0",habits:[
+{id:"h-water-am",name:"Glass of water on waking",time:"morning",desc:"Before anything else"},{id:"h-water-8",name:"Drink 8 glasses of water",time:"anytime",desc:"~2L throughout the day"}]},
+{cat:"Exercise & Movement",icon:"\u{1F3C3}",color:"#6aaa6a",habits:[
+{id:"h-stretch",name:"Morning stretch",time:"morning",desc:"10 min, full body"},{id:"h-exercise",name:"30 min exercise",time:"anytime",desc:"Any movement"},{id:"h-walk",name:"Evening walk",time:"evening",desc:"20\u201330 min"},{id:"h-steps",name:"10,000 steps",time:"anytime",desc:"Throughout the day"}]},
+{cat:"Nutrition",icon:"\u{1F957}",color:"#c5a050",habits:[
+{id:"h-vitamins",name:"Take daily vitamins",time:"morning",desc:"With breakfast"},{id:"h-breakfast",name:"Eat breakfast",time:"morning",desc:"Within 1hr of waking"},{id:"h-nolate",name:"No eating after 8pm",time:"evening",desc:"Better sleep & digestion"}]},
+{cat:"Mental Wellbeing",icon:"\u{1F9D8}",color:"#b07090",habits:[
+{id:"h-meditate",name:"5 min meditation",time:"morning",desc:"Breathing or guided"},{id:"h-journal",name:"Gratitude journaling",time:"evening",desc:"3 things grateful for"},{id:"h-read",name:"Read for 20 min",time:"evening",desc:"Books, not screens"},{id:"h-detox",name:"1 hour digital detox",time:"evening",desc:"No phone or social media"}]},
+{cat:"Home & Organisation",icon:"\u{1F3E0}",color:"#9a8558",habits:[
+{id:"h-bed",name:"Make the bed",time:"morning",desc:"First thing"},{id:"h-tidy",name:"10 min tidy up",time:"evening",desc:"Reset space daily"},{id:"h-plan",name:"Plan tomorrow's tasks",time:"evening",desc:"Top 3 priorities"}]}
+];
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],DS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const CI={cleanse:"\u{1F4A7}",device:"\u2699\uFE0F",treat:"\u2728",protect:"\u{1F6E1}\uFE0F",moisturise:"\u{1FAE7}"};
+const R={
+Monday:{tag:"Detox + Clay Mask",devices:["NuFACE Mini + MicroWand","Sarah Chapman Steamer","AGE-R Booster","AGE-R Derma Shot","SpectraLite"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"nuface",label:"NuFACE Mini + MicroWand \u2014 lift & depuff",cat:"device"},{id:"toner",label:"Medicube Vitamin C Toner Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"steam",label:"Sarah Chapman Steamer \u2014 5\u201310 min",cat:"device"},{id:"clay",label:"Sand & Sky Pink Clay Mask \u2014 10 min, rinse",cat:"treat"},{id:"led",label:"SpectraLite \u2014 Blue 3 min \u2192 Red 3 min",cat:"device"},{id:"ps",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"az",label:"The Ordinary Azelaic Acid \u2014 dark spots",cat:"treat"},{id:"pm",label:"Augustinus Bader The Cream",cat:"moisturise"},{id:"ds",label:"AGE-R Derma Shot \u2014 contour",cat:"device"}]},
+Tuesday:{tag:"Air Shot",devices:["AGE-R Microcurrent","AGE-R Air Shot","AGE-R Booster","AGE-R Derma Shot","SpectraLite"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"mc",label:"AGE-R Microcurrent \u2014 lift & tone",cat:"device"},{id:"toner",label:"Medicube Zero Pore Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"as",label:"AGE-R Air Shot \u2014 clean skin",cat:"device"},{id:"led",label:"SpectraLite \u2014 Blue 3 min \u2192 Red 3 min",cat:"device"},{id:"ps",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"az",label:"The Ordinary Azelaic Acid \u2014 dark spots",cat:"treat"},{id:"pm",label:"Augustinus Bader The Cream",cat:"moisturise"},{id:"ds",label:"AGE-R Derma Shot \u2014 contour",cat:"device"}]},
+Wednesday:{tag:"Exfoliation",devices:["NuFACE Mini + MicroWand","AGE-R Booster"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"nuface",label:"NuFACE Mini + MicroWand \u2014 lift & depuff",cat:"device"},{id:"toner",label:"Medicube Vitamin C Toner Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"peel",label:"L\u2019Or\u00e9al Exfoliant Peel \u2014 5\u201310 min, rinse",cat:"treat"},{id:"ps",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"jc",label:"Medicube Collagen Jelly Cream",cat:"moisturise"},{id:"wm",label:"Collagen Night Wrapping Mask \u2014 peel off AM",cat:"moisturise"}]},
+Thursday:{tag:"Detox + Clay Mask",devices:["AGE-R Microcurrent","Sarah Chapman Steamer","AGE-R Booster","AGE-R Derma Shot","SpectraLite"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"mc",label:"AGE-R Microcurrent \u2014 lift & tone",cat:"device"},{id:"toner",label:"Medicube Vitamin C Toner Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"steam",label:"Sarah Chapman Steamer \u2014 5\u201310 min",cat:"device"},{id:"clay",label:"Sand & Sky Pink Clay Mask \u2014 10 min, rinse",cat:"treat"},{id:"led",label:"SpectraLite \u2014 Blue 3 min \u2192 Red 3 min",cat:"device"},{id:"ps",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"az",label:"The Ordinary Azelaic Acid \u2014 dark spots",cat:"treat"},{id:"pm",label:"Augustinus Bader The Cream",cat:"moisturise"},{id:"ds",label:"AGE-R Derma Shot \u2014 contour",cat:"device"}]},
+Friday:{tag:"Air Shot",devices:["NuFACE Mini + MicroWand","AGE-R Air Shot","AGE-R Booster","AGE-R Derma Shot","SpectraLite"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"nuface",label:"NuFACE Mini + MicroWand \u2014 lift & depuff",cat:"device"},{id:"toner",label:"Medicube Vitamin C Toner Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"as",label:"AGE-R Air Shot \u2014 clean skin",cat:"device"},{id:"led",label:"SpectraLite \u2014 Blue 3 min \u2192 Red 3 min",cat:"device"},{id:"ps",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"az",label:"The Ordinary Azelaic Acid \u2014 dark spots",cat:"treat"},{id:"pm",label:"Augustinus Bader The Cream",cat:"moisturise"},{id:"ds",label:"AGE-R Derma Shot \u2014 contour",cat:"device"}]},
+Saturday:{tag:"Exfoliation",devices:["AGE-R Microcurrent","AGE-R Booster"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"mc",label:"AGE-R Microcurrent \u2014 lift & tone",cat:"device"},{id:"toner",label:"Medicube Zero Pore Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"peel",label:"L\u2019Or\u00e9al Exfoliant Peel \u2014 5\u201310 min, rinse",cat:"treat"},{id:"ps",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"jc",label:"Medicube Collagen Jelly Cream",cat:"moisturise"},{id:"wm",label:"Collagen Night Wrapping Mask \u2014 peel off AM",cat:"moisturise"}]},
+Sunday:{tag:"Rest & Repair",devices:["NuFACE Mini + MicroWand"],am:[{id:"cleanse",label:"Cleanse \u2014 Medicube Zero Foam Cleanser",cat:"cleanse"},{id:"nuface",label:"NuFACE Mini + MicroWand \u2014 lift & depuff",cat:"device"},{id:"toner",label:"Medicube Vitamin C Toner Pad",cat:"treat"},{id:"serum",label:"Anua Niacinamide Serum via AGE-R Booster",cat:"treat"},{id:"spf",label:"Olay Vitamin C Moisturiser SPF 50",cat:"protect"}],pm:[{id:"dc1",label:"Micellar Water (1st cleanse)",cat:"cleanse"},{id:"dc2",label:"Foam Cleanser (2nd cleanse)",cat:"cleanse"},{id:"ps",label:"Anua Niacinamide Serum (by hand)",cat:"treat"},{id:"jc",label:"Medicube Collagen Jelly Cream",cat:"moisturise"},{id:"wm",label:"Collagen Night Wrapping Mask \u2014 peel off AM",cat:"moisturise"}]}
+};
+const TIPS={Monday:"Steam + clay. Steamer opens pores, clay detoxes. SpectraLite blue\u2192red on clean skin after rinse.",Tuesday:"Zero Pore Pad AM. Air Shot + SpectraLite PM. Buffer between clay and peel.",Wednesday:"Peel night \u2014 simple. No LED, no Derma Shot, no azelaic. Wrapping Mask seals recovery.",Thursday:"Second steam + clay. Full device lineup.",Friday:"Second Air Shot. Buffer between clay and peel.",Saturday:"Zero Pore Pad AM. Second peel PM. Wrapping Mask overnight.",Sunday:"Full rest \u2014 no PM devices. Wrapping Mask over Jelly Cream."};
+const QURE_STEPS=["Wash hands. Cleanse face, pat dry.","Spritz Qure Dermal Mist. Wait until dry.","Twist open device. Pour one ampoule in.","Attach needle head (cap on). Invert 1\u20132 min.","Remove cap. Stamp outward from centre, 50% overlap.","Pat excess serum into face and neck.","Replace lid, dispose needle head.","Augustinus Bader The Cream only \u2014 skip actives.","Fresh pillowcase. Extra SPF tomorrow."];
+
+let tab="today",scSel,checks={},activeHabits=[],habChecks={},customHabits=[],streak=0,qure=0,spotActive=false,qureExp=false,openCats={},modal=null,statMonth=null,viewDate=null,editMode=false,itemOrder={morning:[],anytime:[],evening:[]};
+
+function wk(){const n=new Date(),s=new Date(n.getFullYear(),0,1),w=Math.ceil(((n-s)/864e5+s.getDay()+1)/7);return`w-${n.getFullYear()}-${w}`;}
+function tidx(){const d=new Date().getDay();return d===0?6:d-1;}
+function dk(d){return(d||new Date()).toISOString().slice(0,10);}
+function todayStr(){return new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
+function dayOfWeek(ds){const d=new Date(ds);const i=d.getDay();return i===0?6:i-1;}
+function vd(){return viewDate||new Date();}
+function vdk(){return dk(vd());}
+function isViewToday(){return dk(vd())===dk();}
+function setViewDate(offset){const d=new Date();d.setDate(d.getDate()+offset);viewDate=d;render();}
+function viewDateStr(){const d=vd();if(dk(d)===dk())return"Today";const diff=Math.round((new Date()-d)/864e5);if(diff===1)return"Yesterday";return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}
+function viewDayIdx(){const d=vd().getDay();return d===0?6:d-1;}
+
+function save(){try{localStorage.setItem("rt2-checks",JSON.stringify(checks));localStorage.setItem("rt2-hc",JSON.stringify(habChecks));localStorage.setItem("rt2-act",JSON.stringify(activeHabits));localStorage.setItem("rt2-cust",JSON.stringify(customHabits));localStorage.setItem("rt2-str",streak);localStorage.setItem("rt2-qure",qure);localStorage.setItem("rt2-order",JSON.stringify(itemOrder));}catch(e){}}
+function load(){try{const a=k=>localStorage.getItem(k);if(a("rt2-checks"))checks=JSON.parse(a("rt2-checks"));if(a("rt2-hc"))habChecks=JSON.parse(a("rt2-hc"));if(a("rt2-act"))activeHabits=JSON.parse(a("rt2-act"));if(a("rt2-cust"))customHabits=JSON.parse(a("rt2-cust"));if(a("rt2-str"))streak=+a("rt2-str");if(a("rt2-qure"))qure=+a("rt2-qure");if(a("rt2-order"))itemOrder=JSON.parse(a("rt2-order"));}catch(e){}}
+
+function scKey(dn,p,sid){return`${wk()}:${dn}:${p}:${sid}`;}
+function scChk(dn,p,sid){return!!checks[scKey(dn,p,sid)];}
+function scToggle(dn,p,sid){const k=scKey(dn,p,sid);checks[k]=!checks[k];if(!checks[k])delete checks[k];save();render();}
+function scProg(dn){const d=R[dn];let t=d.am.length+d.pm.length,done=0;d.am.forEach(s=>{if(scChk(dn,"am",s.id))done++;});d.pm.forEach(s=>{if(scChk(dn,"pm",s.id))done++;});return{done,t,pct:t>0?Math.round(done/t*100):0};}
+
+function getAllHabits(){
+  const all=[];
+  HABIT_LIB.forEach(c=>c.habits.forEach(h=>all.push({...h,catColor:c.color,catIcon:c.icon,catName:c.cat})));
+  customHabits.forEach(h=>all.push({...h,catColor:"#c5a96a",catIcon:"\u2B50",catName:"Custom"}));
+  return all;
+}
+function getHabit(hid){return getAllHabits().find(h=>h.id===hid)||null;}
+function habChk(hid,d){return!!habChecks[(d||vdk())+":"+hid];}
+function habToggle(hid){const k=vdk()+":"+hid;habChecks[k]=!habChecks[k];if(!habChecks[k])delete habChecks[k];save();render();}
+function toggleHabit(hid){const i=activeHabits.indexOf(hid);if(i>=0)activeHabits.splice(i,1);else activeHabits.push(hid);save();render();}
+function habsByTime(t){return activeHabits.map(id=>getHabit(id)).filter(h=>h&&h.time===t);}
+function habsDone(d){return activeHabits.filter(id=>habChk(id,d||vdk())).length;}
+
+function getDayScore(dateStr){
+  const hTotal=activeHabits.length,hDone=habsDone(dateStr);
+  const di=dayOfWeek(dateStr),dn=DAYS[di],d=R[dn];
+  const scStepTotal=d.am.length+d.pm.length;
+  let scStepDone=0;
+  const w=getWeekKeyForDate(dateStr);
+  d.am.forEach(s=>{if(checks[`${w}:${dn}:am:${s.id}`])scStepDone++;});
+  d.pm.forEach(s=>{if(checks[`${w}:${dn}:pm:${s.id}`])scStepDone++;});
+  let scAmD=0,scPmD=0;
+  d.am.forEach(s=>{if(checks[`${w}:${dn}:am:${s.id}`])scAmD++;});
+  d.pm.forEach(s=>{if(checks[`${w}:${dn}:pm:${s.id}`])scPmD++;});
+  const scAm2=scAmD>0?1:0,scPm2=scPmD>0?1:0;
+  const total=hTotal+2,done=hDone+scAm2+scPm2;
+  return{done,total,pct:total>0?Math.round(done/total*100):0,hDone,hTotal,scStepDone,scStepTotal,scAm2,scPm2};
+}
+function getWeekKeyForDate(ds){const n=new Date(ds),s=new Date(n.getFullYear(),0,1),w=Math.ceil(((n-s)/864e5+s.getDay()+1)/7);return`w-${n.getFullYear()}-${w}`;}
+function getHabStreak(hid){let s=0,d=new Date();d.setDate(d.getDate()-1);while(!!habChecks[dk(d)+':'+hid]){s++;d.setDate(d.getDate()-1);}if(!!habChecks[dk()+':'+hid])s++;return s;}
+
+function getOrderedItems(section){
+  // Build the full list of items for this section
+  const allItems=[];
+  if(section==="morning")allItems.push({id:"sc-am",type:"skincare"});
+  if(section==="evening")allItems.push({id:"sc-pm",type:"skincare"});
+  activeHabits.forEach(id=>{const h=getHabit(id);if(h&&h.time===section)allItems.push({id:id,type:"habit"});});
+  // Apply saved order
+  const order=itemOrder[section]||[];
+  const ordered=[];
+  order.forEach(oid=>{const item=allItems.find(i=>i.id===oid);if(item)ordered.push(item);});
+  allItems.forEach(item=>{if(!ordered.find(o=>o.id===item.id))ordered.push(item);});
+  return ordered;
+}
+function syncOrder(){
+  ["morning","anytime","evening"].forEach(section=>{
+    const items=[];
+    if(section==="morning")items.push("sc-am");
+    if(section==="evening")items.push("sc-pm");
+    activeHabits.forEach(id=>{const h=getHabit(id);if(h&&h.time===section)items.push(id);});
+    const order=itemOrder[section]||[];
+    const newOrder=[];
+    order.forEach(oid=>{if(items.includes(oid))newOrder.push(oid);});
+    items.forEach(id=>{if(!newOrder.includes(id))newOrder.push(id);});
+    itemOrder[section]=newOrder;
+  });
+}
+function moveItem(section,id,dir){
+  syncOrder();
+  const arr=itemOrder[section];
+  const idx=arr.indexOf(id);
+  if(idx<0)return;
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=arr.length)return;
+  arr.splice(idx,1);
+  arr.splice(newIdx,0,id);
+  save();render();
+}
+function toggleScPeriod(period){
+  const dn=DAYS[viewDayIdx()],dd=R[dn],steps=period==="am"?dd.am:dd.pm;
+  let anyDone=false;steps.forEach(s=>{if(scChk(dn,period,s.id))anyDone=true;});
+  if(anyDone){steps.forEach(s=>{const k=scKey(dn,period,s.id);delete checks[k];});}
+  else{steps.forEach(s=>{checks[scKey(dn,period,s.id)]=true;});}
+  save();render();
+}
+function logQure(){if(qure>=6)return;qure++;save();render();}
+function resetWeek(){const w=wk();const nc={};Object.keys(checks).forEach(k=>{if(!k.startsWith(w))nc[k]=checks[k];});checks=nc;save();render();}
+
+function showModal(type,data){modal={type,data:data||{}};render();}
+function hideModal(){modal=null;render();}
+function saveCustomHabit(){
+  const n=document.getElementById("m-name")?.value?.trim();
+  const t=document.getElementById("m-time")?.value;
+  const d=document.getElementById("m-desc")?.value?.trim()||"";
+  if(!n)return;
+  if(modal.data.editing){
+    const h=customHabits.find(h=>h.id===modal.data.editing);
+    if(h){h.name=n;h.time=t;h.desc=d;}
+  }else{
+    const id="custom-"+Date.now();
+    customHabits.push({id,name:n,time:t,desc:d});
+    activeHabits.push(id);
+  }
+  save();hideModal();
+}
+function deleteCustomHabit(hid){
+  customHabits=customHabits.filter(h=>h.id!==hid);
+  activeHabits=activeHabits.filter(id=>id!==hid);
+  Object.keys(habChecks).forEach(k=>{if(k.endsWith(":"+hid))delete habChecks[k];});
+  save();hideModal();
+}
+
+// ===== RENDERERS =====
+function renderToday(){
+  const vi=viewDayIdx(),dn=DAYS[vi],dd=R[dn],p=scProg(dn),vDate=vd();
+  const tH=activeHabits.length,dH=habsDone();
+  let scAmDone=0,scPmDone=0;
+  dd.am.forEach(s=>{if(scChk(dn,"am",s.id))scAmDone++;});
+  dd.pm.forEach(s=>{if(scChk(dn,"pm",s.id))scPmDone++;});
+  const scAm=scAmDone>0?1:0,scPm=scPmDone>0?1:0;
+  const tA=tH+2,dA=dH+scAm+scPm,pA=tA>0?Math.round(dA/tA*100):0;
+  const lbl=isViewToday()?"Today":viewDateStr();
+
+  // Date strip
+  let h=`<div class="date-strip">`;
+  for(let i=-7;i<=0;i++){
+    const d=new Date();d.setDate(d.getDate()+i);
+    const ds=dk(d);const isAct=dk(vDate)===ds;const isT=i===0;
+    const dayName=d.toLocaleDateString('en-GB',{weekday:'short'});
+    const dayNum=d.getDate();
+    h+=`<button class="date-pill ${isAct?"active":""} ${isT&&!isAct?"is-today":""}" onclick="setViewDate(${i})"><span class="date-pill-day">${dayName}</span><span class="date-pill-num">${dayNum}</span></button>`;
+  }
+  h+=`</div>`;
+  if(!isViewToday())h+=`<div class="past-banner"><span>\u{1F4C5} ${viewDateStr()} \u2014 updating past day</span><button onclick="viewDate=null;render()" style="border:none;background:var(--gold);color:var(--bg);padding:4px 12px;border-radius:6px;font-family:system-ui,sans-serif;font-size:11px;font-weight:700">Back to today</button></div>`;
+
+  // Summary cards - simplified
+  h+=`<div class="today-summary"><div class="sum-card"><div class="sum-num" style="color:var(--gold)">${pA}%</div><div class="sum-lbl">${lbl}</div></div><div class="sum-card"><div class="sum-num" style="color:var(--green)">${dA}/${tA}</div><div class="sum-lbl">Done</div></div><div class="sum-card"><div class="sum-num" style="color:var(--gold)">${streak}</div><div class="sum-lbl">Streak</div></div></div>`;
+
+  // Edit mode toggle
+  h+=`<div style="display:flex;justify-content:flex-end;padding:0 14px"><button onclick="editMode=!editMode;render()" style="padding:6px 14px;border-radius:8px;border:1px solid ${editMode?"var(--gold)":"var(--border)"};background:${editMode?"rgba(197,169,106,.1)":"transparent"};color:${editMode?"var(--gold)":"var(--txt-mid)"};font-family:system-ui,sans-serif;font-size:11px;font-weight:600">${editMode?"\u2713 Done reordering":"\u2195 Reorder"}</button></div>`;
+
+  // Helper to render a habit item
+  function habItem(hab,d,st){
+    return `<button class="hab-item ${d?"done":""}" onclick="habToggle('${hab.id}')"><div class="hab-chk"><span class="hab-cm">\u2713</span></div><div class="hab-info"><div class="hab-name">${hab.name}</div><div class="sf" style="font-size:10px;color:var(--txt-lo)">${hab.desc}${st>1?" \u2022 "+st+" day streak":""}</div></div><div class="hab-cat-dot" style="background:${hab.catColor}"></div></button>`;
+  }
+
+  // Skincare item renderer
+  function scItem(period,label,desc,isDone){
+    const cls=isDone?"done":"";
+    return `<button class="hab-item ${cls}" onclick="toggleScPeriod('${period}')"><div class="hab-chk"><span class="hab-cm">\u2713</span></div><div class="hab-info"><div class="hab-name">${label}</div><div class="sf" style="font-size:10px;color:var(--txt-lo)">${desc}</div></div><div class="hab-cat-dot" style="background:var(--lav)"></div></button>`;
+  }
+
+  // Morning section
+  const mornHabs=habsByTime("morning");
+  h+=`<div class="hab-section"><div class="hab-section-t">\u2600\uFE0F Morning</div>`;
+  h+=scItem("am","\u2728 Skincare AM",R[dn].tag+" \u2014 "+scAmDone+"/"+dd.am.length+" steps \u2022 tap Skincare tab for details",scAm);
+  mornHabs.forEach(hab=>{h+=habItem(hab,habChk(hab.id),getHabStreak(hab.id));});
+  h+=`</div>`;
+
+  // Anytime section
+  const anyHabs=habsByTime("anytime");
+  if(anyHabs.length){
+    h+=`<div class="hab-section"><div class="hab-section-t">\u{1F31F} Anytime</div>`;
+    anyHabs.forEach(hab=>{h+=habItem(hab,habChk(hab.id),getHabStreak(hab.id));});
+    h+=`</div>`;
+  }
+
+  // Evening section
+  const eveHabs=habsByTime("evening");
+  h+=`<div class="hab-section"><div class="hab-section-t">\u{1F319} Evening</div>`;
+  h+=scItem("pm","\u{1F319} Skincare PM",R[dn].tag+" \u2014 "+scPmDone+"/"+dd.pm.length+" steps \u2022 tap Skincare tab for details",scPm);
+  eveHabs.forEach(hab=>{h+=habItem(hab,habChk(hab.id),getHabStreak(hab.id));});
+  h+=`</div>`;
+
+  if(!activeHabits.length)h+=`<div class="panel" style="text-align:center"><div class="panel-t" style="color:var(--gold)">Start building your routine</div><p class="sf" style="font-size:12px;color:var(--txt-mid);line-height:1.6">Your skincare is set. Tap <strong>Habits</strong> below to add your first daily habit. Start with one \u2014 consistency beats complexity.</p></div>`;
+  return h;
+}
+
+function renderSkincare(){
+  const dn=DAYS[scSel],dd=R[dn],p=scProg(dn),isT=scSel===tidx(),dl=(p.pct/100)*150.8;
+  let h=`<button onclick="tab='today';render()" style="display:flex;align-items:center;gap:6px;padding:12px 14px;border:none;background:transparent;color:var(--gold);font-family:system-ui,sans-serif;font-size:13px;font-weight:600">\u25C0 Back</button>`;
+  h+=`<div class="week-strip">${DAYS.map((d,i)=>{const dp=scProg(d);let c="day-pill";if(i===scSel)c+=" active";if(i===tidx()&&i!==scSel)c+=" today";return`<button class="${c}" onclick="scSel=${i};render()"><span>${DS[i]}</span>${dp.pct>0?`<div class="micro-bar"><div class="micro-fill" style="width:${dp.pct}%"></div></div>`:""}</button>`;}).join("")}</div>`;
+  h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px 10px"><div><div style="font-size:20px;font-weight:400">${dn}${isT?`<span style="font-size:10px;color:#fff;background:var(--accent-l);padding:3px 12px;border-radius:20px;font-family:system-ui,sans-serif;font-weight:700;margin-left:10px">Today</span>`:""}</div><div style="font-size:12px;color:var(--gold);margin-top:3px;font-family:system-ui,sans-serif;letter-spacing:1.5px;text-transform:uppercase;font-weight:600">${dd.tag}</div></div><div class="sc-prog-ring" style="width:58px;height:58px"><svg width="58" height="58" viewBox="0 0 58 58"><circle cx="29" cy="29" r="24" fill="none" stroke="var(--border)" stroke-width="4"/><circle cx="29" cy="29" r="24" fill="none" stroke="var(--gold)" stroke-width="4" stroke-dasharray="${dl} 150.8" stroke-linecap="round" transform="rotate(-90 29 29)"/></svg><span class="sc-prog-txt">${p.pct}%</span></div></div>`;
+  h+=`<div class="chip-row">${dd.devices.map(d=>`<span class="chip">${d}</span>`).join("")}</div>`;
+  h+=`<div style="padding:0 14px 24px">`;
+  h+=`<div style="display:flex;align-items:center;gap:8px;padding:10px 0 8px"><span style="font-size:17px">\u2600\uFE0F</span><span class="sf" style="font-size:12px;font-weight:700;color:var(--txt-mid);text-transform:uppercase;letter-spacing:2px">Morning</span></div>`;
+  dd.am.forEach(s=>{const d=scChk(dn,"am",s.id);h+=`<button class="step cat-${s.cat} ${d?"done":""}" onclick="scToggle('${dn}','am','${s.id}')"><div class="step-chk"><span class="step-cm">\u2713</span></div><div class="step-content"><span class="step-cat">${CI[s.cat]} ${s.cat}</span><span class="step-label">${s.label}</span></div></button>`;});
+  h+=`<div class="mist">\u{1F4A6} Midday: spritz Pink Peptide Mist Spray</div>`;
+  h+=`<div style="display:flex;align-items:center;gap:8px;padding:16px 0 8px"><span style="font-size:17px">\u{1F319}</span><span class="sf" style="font-size:12px;font-weight:700;color:var(--txt-mid);text-transform:uppercase;letter-spacing:2px">Evening</span></div>`;
+  dd.pm.forEach(s=>{const d=scChk(dn,"pm",s.id);h+=`<button class="step cat-${s.cat} ${d?"done":""}" onclick="scToggle('${dn}','pm','${s.id}')"><div class="step-chk"><span class="step-cm">\u2713</span></div><div class="step-content"><span class="step-cat">${CI[s.cat]} ${s.cat}</span><span class="step-label">${s.label}</span></div></button>`;});
+  h+=`<button class="spot-toggle ${spotActive?"active":""}" onclick="spotActive=!spotActive;render()"><span>\u{1F3AF} Acne Spot Treatment</span><span style="font-size:11px;color:var(--txt-mid)">${spotActive?"Active":"Tap if active pimples"}</span></button>`;
+  if(spotActive){const d=scChk(dn,"pm","spot");h+=`<div style="margin-top:7px"><button class="step spot-step ${d?"done":""}" onclick="scToggle('${dn}','pm','spot')"><div class="step-chk"><span class="step-cm">\u2713</span></div><div class="step-content"><span class="step-cat">\u{1F3AF} spot</span><span class="step-label">Pimple patch \u2014 avoid Derma Shot on inflamed areas</span></div></button></div>`;}
+  h+=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center"><span class="panel-t" style="color:var(--lav);margin-bottom:0">\u2B21 Qure Micro Infusion</span><span class="sf" style="font-size:12px;color:var(--txt-mid);font-weight:600">${qure}/6</span></div><div style="display:flex;gap:8px;margin-top:14px;justify-content:center">${[1,2,3,4,5,6].map(n=>`<div class="qure-dot ${n<=qure?"filled":""}">${n}</div>`).join("")}</div>`;
+  if(dn==="Wednesday")h+=`<button style="width:100%;margin-top:14px;padding:11px;border-radius:8px;border:none;background:var(--lav);color:#fff;font-family:system-ui,sans-serif;font-size:12px;font-weight:600" onclick="logQure()" ${qure>=6?"disabled":""}>Log Qure tonight</button>`;
+  h+=`<button onclick="qureExp=!qureExp;render()" style="width:100%;margin-top:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--cream);font-family:system-ui,sans-serif;font-size:12px;font-weight:600;display:flex;justify-content:space-between"><span>\u{1F4CB} Steps</span><span style="color:var(--lav)">${qureExp?"\u25B2":"\u25BC"}</span></button>`;
+  if(qureExp){h+=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">`;QURE_STEPS.forEach((s,i)=>{h+=`<div style="display:flex;gap:10px;padding:5px 0;font-family:system-ui,sans-serif;font-size:12px;color:var(--txt-mid);line-height:1.5"><div style="width:20px;height:20px;min-width:20px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--lav)">${i+1}</div><div>${s}</div></div>`;});h+=`</div>`;}
+  h+=`</div>`;
+  h+=`<div class="panel" style="margin-top:18px"><div style="font-size:13px;font-weight:600;color:var(--gold);font-family:system-ui,sans-serif;margin-bottom:8px">\u{1F4A1} ${dn}</div><p class="sf" style="font-size:12px;color:var(--txt-mid);line-height:1.65">${TIPS[dn]}</p></div>`;
+  h+=`<button class="reset-btn" onclick="resetWeek()">Reset skincare this week</button><div style="height:20px"></div></div>`;
+  return h;
+}
+
+function renderHabits(){
+  let h=`<div style="padding:16px 14px 4px"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:18px;font-weight:400;color:var(--cream)">Habit Library</div><button onclick="showModal('addHabit')" style="padding:8px 16px;border-radius:8px;border:none;background:var(--gold);color:var(--bg);font-family:system-ui,sans-serif;font-size:12px;font-weight:700">+ Custom</button></div><p class="sf" style="font-size:12px;color:var(--txt-mid);margin-top:6px;line-height:1.5">Start with one habit. Once automatic (~2\u20133 weeks), add the next.</p></div>`;
+  if(activeHabits.length)h+=`<div style="padding:8px 14px"><span class="sf" style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px">${activeHabits.length} active</span></div>`;
+  // Custom habits section
+  if(customHabits.length){
+    const isO=openCats["custom"];
+    const ac=customHabits.filter(h=>activeHabits.includes(h.id)).length;
+    h+=`<div class="lib-cat"><div class="lib-cat-hdr" onclick="openCats['custom']=!openCats['custom'];render()"><div class="lib-cat-name"><span>\u2B50</span><span>Custom Habits</span>${ac?`<span style="font-size:10px;color:var(--green);font-weight:700">${ac} active</span>`:""}</div><span class="lib-cat-arrow" style="transform:rotate(${isO?180:0}deg)">\u25BC</span></div>`;
+    if(isO){customHabits.forEach(hab=>{const isOn=activeHabits.includes(hab.id);h+=`<div class="lib-item"><div style="flex:1"><div class="lib-item-name">${hab.name}</div><div class="lib-item-desc">${hab.desc||"Custom"} \u2022 ${hab.time}</div><div style="display:flex;gap:8px;margin-top:6px"><button onclick="showModal('editHabit',{id:'${hab.id}'})" style="font-size:10px;color:var(--gold);background:transparent;border:1px solid var(--border);padding:4px 10px;border-radius:6px;font-family:system-ui,sans-serif">Edit</button><button onclick="showModal('deleteHabit',{id:'${hab.id}',name:'${hab.name.replace(/'/g,"\\'")}'})" style="font-size:10px;color:var(--red);background:transparent;border:1px solid var(--border);padding:4px 10px;border-radius:6px;font-family:system-ui,sans-serif">Delete</button></div></div><button class="lib-toggle ${isOn?"on":"off"}" onclick="toggleHabit('${hab.id}')"><span class="lib-toggle-dot"></span></button></div>`;});}
+    h+=`</div>`;
+  }
+  HABIT_LIB.forEach((cat,ci)=>{
+    const isO=openCats[ci];const ac=cat.habits.filter(h=>activeHabits.includes(h.id)).length;
+    h+=`<div class="lib-cat"><div class="lib-cat-hdr" onclick="openCats[${ci}]=!openCats[${ci}];render()"><div class="lib-cat-name"><span>${cat.icon}</span><span>${cat.cat}</span>${ac?`<span style="font-size:10px;color:var(--green);font-weight:700">${ac} active</span>`:""}</div><span class="lib-cat-arrow" style="transform:rotate(${isO?180:0}deg)">\u25BC</span></div>`;
+    if(isO){cat.habits.forEach(hab=>{const isOn=activeHabits.includes(hab.id);h+=`<div class="lib-item"><div style="flex:1"><div class="lib-item-name">${hab.name}</div><div class="lib-item-desc">${hab.desc} \u2022 ${hab.time}</div></div><button class="lib-toggle ${isOn?"on":"off"}" onclick="toggleHabit('${hab.id}')"><span class="lib-toggle-dot"></span></button></div>`;});}
+    h+=`</div>`;
+  });
+  h+=`<div style="height:20px"></div>`;return h;
+}
+
+function renderStats(){
+  const now=new Date();
+  if(!statMonth)statMonth=new Date(now.getFullYear(),now.getMonth(),1);
+  const sm=statMonth;
+
+  let h=`<div style="padding:16px 14px 8px"><div style="font-size:18px;font-weight:400;color:var(--cream)">Progress & Insights</div></div>`;
+
+  // This week bars
+  h+=`<div class="panel"><div class="panel-t" style="color:var(--gold)">This Week</div><div class="stat-bar-row">`;
+  const today=new Date();const dow=today.getDay();const mondayOff=dow===0?-6:1-dow;
+  for(let i=0;i<7;i++){
+    const d=new Date(today);d.setDate(today.getDate()+mondayOff+i);
+    const ds=dk(d);const isPast=d<=today;const score=isPast?getDayScore(ds):{pct:0};
+    const barH=Math.max(2,score.pct*1);
+    const col=score.pct>=80?"var(--green)":score.pct>=50?"var(--gold)":score.pct>0?"var(--rose)":"var(--border)";
+    const isToday=dk(d)===dk();
+    h+=`<div class="stat-bar-col"><div class="stat-bar-val">${isPast&&score.pct>0?score.pct+"%":""}</div><div class="stat-bar" style="height:${barH}px;background:${col};${isToday?"box-shadow:0 0 8px "+col:""}"></div><div class="stat-bar-lbl" style="${isToday?"color:var(--gold);font-weight:700":""}">${DS[i]}</div></div>`;
+  }
+  h+=`</div></div>`;
+
+  // Day-of-week averages (last 4 weeks)
+  h+=`<div class="panel"><div class="panel-t" style="color:var(--gold)">Day-of-Week Patterns <span class="sf" style="font-size:10px;color:var(--txt-lo);font-weight:400">(last 4 weeks)</span></div><div class="stat-bar-row">`;
+  for(let i=0;i<7;i++){
+    let total=0,count=0;
+    for(let w=0;w<4;w++){
+      const d=new Date(today);d.setDate(today.getDate()+mondayOff+i-w*7);
+      if(d<=today){const ds2=dk(d);const s=getDayScore(ds2);const wk2=getWeekKeyForDate(ds2);const dn2=DAYS[dayOfWeek(ds2)];const hasData=Object.keys(habChecks).some(k=>k.startsWith(ds2+":"))||Object.keys(checks).some(k=>k.startsWith(wk2+":"+dn2+":"));if(hasData){total+=s.pct;count++;}}
+    }
+    const avg=count>0?Math.round(total/count):0;
+    const barH=Math.max(2,avg*1);
+    const col=avg>=80?"var(--green)":avg>=50?"var(--gold)":avg>0?"var(--rose)":"var(--border)";
+    h+=`<div class="stat-bar-col"><div class="stat-bar-val">${avg>0?avg+"%":""}</div><div class="stat-bar" style="height:${barH}px;background:${col}"></div><div class="stat-bar-lbl">${DS[i]}</div></div>`;
+  }
+  h+=`</div><p class="sf" style="font-size:11px;color:var(--txt-lo);margin-top:10px;text-align:center">Lower bars show days you typically struggle with</p></div>`;
+
+  // Monthly calendar
+  const mName=sm.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  h+=`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><button onclick="statMonth=new Date(statMonth.getFullYear(),statMonth.getMonth()-1,1);render()" style="border:none;background:transparent;color:var(--gold);font-size:18px;padding:4px 10px">\u25C0</button><span class="panel-t" style="color:var(--gold);margin-bottom:0">${mName}</span><button onclick="statMonth=new Date(statMonth.getFullYear(),statMonth.getMonth()+1,1);render()" style="border:none;background:transparent;color:var(--gold);font-size:18px;padding:4px 10px">\u25B6</button></div>`;
+  h+=`<div class="cal-grid">`;
+  ["M","T","W","T","F","S","S"].forEach(d=>{h+=`<div class="cal-hdr">${d}</div>`;});
+  const firstDay=new Date(sm.getFullYear(),sm.getMonth(),1).getDay();
+  const offset=firstDay===0?6:firstDay-1;
+  const daysInMonth=new Date(sm.getFullYear(),sm.getMonth()+1,0).getDate();
+  for(let i=0;i<offset;i++)h+=`<div class="cal-cell cal-empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(sm.getFullYear(),sm.getMonth(),d);
+    const ds=dk(dt);const isFuture=dt>today;
+    if(isFuture){h+=`<div class="cal-cell" style="background:var(--card);color:var(--txt-lo)">${d}</div>`;continue;}
+    const score=getDayScore(ds);
+    const bg=score.pct>=80?"var(--green)":score.pct>=50?"var(--gold)":score.pct>0?"var(--rose)":"var(--card)";
+    const fg=score.pct>=50?"var(--bg)":"var(--cream)";
+    const isT=ds===dk();
+    h+=`<div class="cal-cell" style="background:${bg};color:${fg};${isT?"box-shadow:0 0 0 2px var(--cream)":""}">${d}</div>`;
+  }
+  h+=`</div><div style="display:flex;gap:12px;justify-content:center;margin-top:12px">`;
+  [{c:"var(--green)",l:"80%+"},{c:"var(--gold)",l:"50\u201379%"},{c:"var(--rose)",l:"1\u201349%"},{c:"var(--card)",l:"0%"}].forEach(i=>{h+=`<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:${i.c}"></div><span class="sf" style="font-size:9px;color:var(--txt-mid)">${i.l}</span></div>`;});
+  h+=`</div></div>`;
+
+  // Per-habit streaks
+  if(activeHabits.length){
+    h+=`<div class="panel"><div class="panel-t" style="color:var(--gold)">Habit Streaks</div>`;
+    activeHabits.forEach(id=>{
+      const hab=getHabit(id);if(!hab)return;
+      const st=getHabStreak(id);const done=habChk(id);
+      h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div class="hab-cat-dot" style="background:${hab.catColor}"></div><div style="flex:1"><div class="sf" style="font-size:13px;color:var(--cream);font-weight:500">${hab.name}</div></div><div style="text-align:right"><div class="sf" style="font-size:16px;font-weight:700;color:${st>=7?"var(--green)":st>=3?"var(--gold)":"var(--txt-mid)"}">${st}</div><div class="sf" style="font-size:9px;color:var(--txt-lo);text-transform:uppercase">days</div></div></div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`<div style="height:20px"></div>`;return h;
+}
+
+function renderModal(){
+  if(!modal)return"";
+  if(modal.type==="addHabit"||modal.type==="editHabit"){
+    const editing=modal.type==="editHabit";
+    const hab=editing?customHabits.find(h=>h.id===modal.data.id):null;
+    return`<div class="modal-overlay" onclick="if(event.target===this)hideModal()"><div class="modal"><div class="modal-title">${editing?"Edit":"Create"} Habit</div>
+      <div class="modal-field"><div class="modal-label">Name</div><input class="modal-input" id="m-name" placeholder="e.g. Read for 20 min" value="${hab?hab.name:""}"></div>
+      <div class="modal-field"><div class="modal-label">Time of Day</div><select class="modal-select" id="m-time"><option value="morning" ${hab?.time==="morning"?"selected":""}>Morning</option><option value="anytime" ${hab?.time==="anytime"?"selected":""}>Anytime</option><option value="evening" ${hab?.time==="evening"?"selected":""}>Evening</option></select></div>
+      <div class="modal-field"><div class="modal-label">Description (optional)</div><input class="modal-input" id="m-desc" placeholder="e.g. Before breakfast" value="${hab?hab.desc:""}"></div>
+      <div class="modal-btns"><button class="btn-secondary" onclick="hideModal()">Cancel</button><button class="btn-primary" onclick="saveCustomHabit()">${editing?"Save":"Add Habit"}</button></div></div></div>`;
+  }
+  if(modal.type==="deleteHabit"){
+    return`<div class="modal-overlay" onclick="if(event.target===this)hideModal()"><div class="modal"><div class="modal-title">Delete Habit</div><p class="sf" style="color:var(--txt-mid);line-height:1.5;margin-bottom:20px">Remove <strong>${modal.data.name}</strong>? This will delete all tracking history for this habit.</p><div class="modal-btns"><button class="btn-secondary" onclick="hideModal()">Cancel</button><button class="btn-danger" onclick="deleteCustomHabit('${modal.data.id}')">Delete</button></div></div></div>`;
+  }
+  return"";
+}
+
+function render(){
+  document.getElementById("app").innerHTML=`
+  <div class="hdr"><div class="hdr-row"><div><h1>Daily Routine</h1><div class="hdr-sub">Habit & Skincare Tracker</div><div class="hdr-date">${todayStr()}</div></div><div class="streak-box"><span class="streak-n">${streak}</span><span class="streak-l">streak</span></div></div></div>
+  ${tab==="today"?renderToday():tab==="skincare"?renderSkincare():tab==="habits"?renderHabits():renderStats()}
+  <div class="bnav">
+    <button class="${tab==="today"?"act":""}" onclick="tab='today';render()"><span class="bnav-icon">\u2600\uFE0F</span>Today</button>
+    <button class="${tab==="skincare"?"act":""}" onclick="tab='skincare';render()"><span class="bnav-icon">\u2728</span>Skincare</button>
+    <button class="${tab==="habits"?"act":""}" onclick="tab='habits';render()"><span class="bnav-icon">\u{1F4CB}</span>Habits</button>
+    <button class="${tab==="stats"?"act":""}" onclick="tab='stats';render()"><span class="bnav-icon">\u{1F4CA}</span>Stats</button>
+  </div>
+  ${renderModal()}`;
+}
+
+scSel=tidx();load();render();
+</script>
+</body>
+</html>
